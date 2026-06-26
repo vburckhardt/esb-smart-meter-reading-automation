@@ -1,7 +1,5 @@
 #  esb-smart-meter-reading-automation
 
-> This is a fork of [badger707/esb-smart-meter-reading-automation](https://github.com/badger707/esb-smart-meter-reading-automation).
-
 ![](https://github.com/badger707/esb-smart-meter-reading-automation/blob/main/esb-smart-meter.png)
 <br><br>
 ## How to read your Smart Meter data automatically?
