@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """Download smart electricity meter readings from the ESB Networks customer portal.
 
-Configuration is read from a ".env" file (see ".env.example"). Run with:
+Configuration is read from a ".env" file (see ".env.example"). Output goes to
+stdout — redirect with the shell to save to a file:
 
-    uv run esb-smart-meter-reader.py
+    uv run esb-smart-meter-reader.py > readings.json
+    uv run esb-smart-meter-reader.py --format csv > readings.csv
 
 Set LOG_LEVEL=DEBUG in ".env" for a verbose per-request trace.
 """
 
+import argparse
 import csv
 import io
 import json
@@ -49,7 +52,6 @@ class EsbConfig:
     password: str
     mprn: str
     search_type: str
-    output_format: str
     user_agent: str
     log_level: str
 
@@ -62,7 +64,6 @@ def load_config() -> EsbConfig:
     password = os.environ.get("ESB_PASSWORD", "").strip()
     mprn = os.environ.get("ESB_MPRN", "").strip()
     search_type = os.environ.get("ESB_SEARCH_TYPE", "intervalkwh").strip()
-    output_format = os.environ.get("ESB_OUTPUT_FORMAT", "json").strip().lower()
     user_agent = os.environ.get("ESB_USER_AGENT", "").strip() or DEFAULT_USER_AGENT
     log_level = os.environ.get("LOG_LEVEL", "INFO").strip().upper()
 
@@ -83,18 +84,11 @@ def load_config() -> EsbConfig:
             + ". Copy .env.example to .env and fill in your values."
         )
 
-    if output_format not in ALLOWED_OUTPUT_FORMATS:
-        raise SystemExit(
-            f"ESB_OUTPUT_FORMAT must be one of {ALLOWED_OUTPUT_FORMATS}, "
-            f"got '{output_format}'."
-        )
-
     return EsbConfig(
         username=username,
         password=password,
         mprn=mprn,
         search_type=search_type,
-        output_format=output_format,
         user_agent=user_agent,
         log_level=log_level,
     )
@@ -105,6 +99,15 @@ def configure_logging(log_level: str) -> None:
         level=getattr(logging, log_level, logging.INFO),
         format="%(asctime)s %(levelname)s %(message)s",
     )
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Download ESB smart meter readings.")
+    parser.add_argument(
+        "--format", choices=ALLOWED_OUTPUT_FORMATS, default="json",
+        help="Output format: json (default) or csv",
+    )
+    return parser.parse_args()
 
 
 def random_delay(min_seconds: int, max_seconds: int) -> None:
@@ -503,6 +506,7 @@ def csv_to_json(csv_text: str) -> str:
 
 
 def main() -> None:
+    args = parse_args()
     config = load_config()
     configure_logging(config.log_level)
 
@@ -534,7 +538,7 @@ def main() -> None:
     logger.info("Downloaded file :: %s (%s bytes)", filename, response.headers.get("Content-Length"))
 
     readings_csv = decode_payload(response)
-    if config.output_format == "csv":
+    if args.format == "csv":
         print(readings_csv)
     else:
         print(csv_to_json(readings_csv))

@@ -33,6 +33,18 @@ The `.env` file is git-ignored and never committed.
 uv run esb-smart-meter-reader.py
 ```
 
+Output goes to stdout — redirect with the shell to save to a file:
+```
+uv run esb-smart-meter-reader.py > readings.json
+uv run esb-smart-meter-reader.py --format csv > readings.csv
+```
+
+## CLI options<br>
+| Option | Description |
+| --- | --- |
+| `--format json\|csv` | Output format (default: `json`). |
+| `--help` | Show all options. |
+
 ## Configuration (`.env`)<br>
 | Variable | Description |
 | --- | --- |
@@ -40,7 +52,6 @@ uv run esb-smart-meter-reader.py
 | `ESB_PASSWORD` | Your ESB Networks account password. |
 | `ESB_MPRN` | The MPRN of the meter to read. |
 | `ESB_SEARCH_TYPE` | Dataset to download (default `intervalkwh`). |
-| `ESB_OUTPUT_FORMAT` | Output printed to stdout: `json` (default) or `csv`. |
 | `ESB_USER_AGENT` | Optional User-Agent override (has a sensible default). |
 | `LOG_LEVEL` | Logging verbosity: `DEBUG`, `INFO` (default), `WARNING`, `ERROR`. |
 
